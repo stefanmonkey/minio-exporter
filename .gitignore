@@ -3,3 +3,4 @@
 /.tarballs
 /minio_exporter
 *.tar.gz
+/.idea
