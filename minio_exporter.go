@@ -152,7 +152,7 @@ func execute(e *MinioExporter, ch chan<- prometheus.Metric) error {
 func collectServerStats(e *MinioExporter, ch chan<- prometheus.Metric) {
 	statsAll, _ := e.AdminClient.ServerInfo()
 
-	for sIndex, stats := range statsAll {
+	for _, stats := range statsAll {
 		host := stats.Addr
 		connStats := stats.Data.ConnStats
 		ch <- prometheus.MustNewConstMetric(
