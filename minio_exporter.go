@@ -22,7 +22,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
@@ -173,12 +172,12 @@ func collectServerStats(e *MinioExporter, ch chan<- prometheus.Metric) {
 			prometheus.GaugeValue,
 			float64(connStats.TotalOutputBytes), host)
 
-		collectStorageInfo(stats.Data.StorageInfo, host, sIndex, ch)
+		collectStorageInfo(stats.Data.StorageInfo, host, ch)
 	}
 
 }
 
-func collectStorageInfo(si madmin.StorageInfo, host string, seq int, ch chan<- prometheus.Metric) {
+func collectStorageInfo(si madmin.StorageInfo, host string, ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(
 		prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "storage", "total_disk_space"),
@@ -239,10 +238,10 @@ func collectStorageInfo(si madmin.StorageInfo, host string, seq int, ch chan<- p
 		prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "storage", "storage_type"),
 			"Minio backend storage type used",
-			[]string{"type", "seq"},
+			[]string{"type", "minio_host"},
 			nil),
 		prometheus.GaugeValue,
-		float64(si.Backend.Type), fstype, strconv.Itoa(seq))
+		float64(si.Backend.Type), fstype, host)
 }
 
 // Collect all buckets stats per bucket. Each bucket stats runs in a go routine.
