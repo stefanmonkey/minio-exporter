@@ -153,28 +153,31 @@ func collectServerStats(e *MinioExporter, ch chan<- prometheus.Metric) {
 	statsAll, _ := e.AdminClient.ServerInfo()
 
 	for _, stats := range statsAll {
-		host := stats.Addr
-		connStats := stats.Data.ConnStats
-		ch <- prometheus.MustNewConstMetric(
-			prometheus.NewDesc(
-				prometheus.BuildFQName(namespace, "conn", "total_input_bytes"),
-				"Minio total input bytes received",
-				[]string{"minio_host"},
-				nil),
-			prometheus.GaugeValue,
-			float64(connStats.TotalInputBytes), host)
-		ch <- prometheus.MustNewConstMetric(
-			prometheus.NewDesc(
-				prometheus.BuildFQName(namespace, "conn", "total_output_bytes"),
-				"Minio total output bytes received",
-				[]string{"minio_host"},
-				nil),
-			prometheus.GaugeValue,
-			float64(connStats.TotalOutputBytes), host)
+		// if one minio instance down, stats.Data is <nil>
+		if stats.Data != nil {
+			host := stats.Addr
+			connStats := stats.Data.ConnStats
 
-		collectStorageInfo(stats.Data.StorageInfo, host, ch)
+			ch <- prometheus.MustNewConstMetric(
+				prometheus.NewDesc(
+					prometheus.BuildFQName(namespace, "conn", "total_input_bytes"),
+					"Minio total input bytes received",
+					[]string{"minio_host"},
+					nil),
+				prometheus.GaugeValue,
+				float64(connStats.TotalInputBytes), host)
+			ch <- prometheus.MustNewConstMetric(
+				prometheus.NewDesc(
+					prometheus.BuildFQName(namespace, "conn", "total_output_bytes"),
+					"Minio total output bytes received",
+					[]string{"minio_host"},
+					nil),
+				prometheus.GaugeValue,
+				float64(connStats.TotalOutputBytes), host)
+
+			collectStorageInfo(stats.Data.StorageInfo, host, ch)
+		}
 	}
-
 }
 
 func collectStorageInfo(si madmin.StorageInfo, host string, ch chan<- prometheus.Metric) {
